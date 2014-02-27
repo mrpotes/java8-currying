@@ -61,17 +61,17 @@ public class GenerateCodeMojo extends AbstractMojo {
 			"import java.util.function.Function;",
 			"@FunctionalInterface",
 			"public interface Function%d<%s,T> {",
-				"T apply(%s);",
-				"%s",
+			"  T apply(%s);",
+			"%s",
 			"}"
 			));
 	private static String METHOD_CONTENT = ON_CR.join(Arrays.asList(
-			"default Function%s apply(%s) {",
-				"return (%s) -> this.apply(%s);",
-			"}"
+			"  default Function%s apply(%s) {",
+			"    return (%s) -> this.apply(%s);",
+			"  }"
 			));
 
-	private Map<String, String> makeClasses(int numClasses) {
+	Map<String, String> makeClasses(int numClasses) {
 		Map<String,String> classes = new TreeMap<>();
 		for (int i = 1; i < numClasses; i++) {
 			List<String> typeParamNames = TYPE_PARAM_NAMES.subList(0, i);

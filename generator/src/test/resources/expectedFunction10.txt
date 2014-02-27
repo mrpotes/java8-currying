@@ -1,0 +1,33 @@
+package potes.java8.currying;
+import java.util.function.Function;
+@FunctionalInterface
+public interface Function2<A,B,C,D,E,F,G,H,I,J,T> {
+  T apply(A a,B b,C c,D d,E e,F f,G g,H h,I i,J j);
+  default Function9<B,T> apply(A a) {
+    return (b,c,d,e,f,g,h,i,j) -> this.apply(a,b,c,d,e,f,g,h,i,j);
+  }
+  default Function8<B,T> apply(A a,B b) {
+    return (c,d,e,f,g,h,i,j) -> this.apply(a,b,c,d,e,f,g,h,i,j);
+  }
+  default Function7<B,T> apply(A a,B b,C c) {
+    return (d,e,f,g,h,i,j) -> this.apply(a,b,c,d,e,f,g,h,i,j);
+  }
+  default Function6<B,T> apply(A a,B b,C c,D d) {
+    return (e,f,g,h,i,j) -> this.apply(a,b,c,d,e,f,g,h,i,j);
+  }
+  default Function5<B,T> apply(A a,B b,C c,D d,E e) {
+    return (f,g,h,i,j) -> this.apply(a,b,c,d,e,f,g,h,i,j);
+  }
+  default Function4<B,T> apply(A a,B b,C c,D d,E e,F f) {
+    return (g,h,i,j) -> this.apply(a,b,c,d,e,f,g,h,i,j);
+  }
+  default Function3<B,T> apply(A a,B b,C c,D d,E e,F f,G g) {
+    return (h,i,j) -> this.apply(a,b,c,d,e,f,g,h,i,j);
+  }
+  default Function2<,T> apply(A a,B b,C c,D d,E e,F f,G g,H h) {
+    return (i,j) -> this.apply(a,b,c,d,e,f,g,h,i,j);
+  }
+  default Function<J,T> apply(A a,B b,C c,D d,E e,F f,G g,H h,I i) {
+    return (j) -> this.apply(a,b,c,d,e,f,g,h,i,j);
+  }
+}
