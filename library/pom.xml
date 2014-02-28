@@ -2,11 +2,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>java8-currying</artifactId>
-	<parent>
-		<artifactId>java8-currying-modules</artifactId>
-		<groupId>potes.java8.currying</groupId>
-		<version>0.0.1-SNAPSHOT</version>
-	</parent>
+	<groupId>potes.java8.currying</groupId>
+	<version>0.0.1-SNAPSHOT</version>
+  <scm>
+    <connection>scm:git:git@github.com:mrpotes/java8-currying.git</connection>
+    <developerConnection>scm:git:git@github.com:mrpotes/java8-currying.git</developerConnection>
+    <url>git@github.com:mrpotes/java8-currying.git</url>
+  </scm>
 	<dependencies>
     <dependency>
       <artifactId>junit</artifactId>
