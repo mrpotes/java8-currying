@@ -42,7 +42,7 @@ public class GenerateCodeMojo extends AbstractMojo {
     private MavenProject project;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-		File d = new File(new File(new File(generatedSourcesDirectory, "potes"), "java8"), "currying");
+		File d = new File(new File(generatedSourcesDirectory, "java8"), "currying");
 		d.mkdirs();
 		
 		Map<String,String> classContent = makeClasses(10);
@@ -56,18 +56,33 @@ public class GenerateCodeMojo extends AbstractMojo {
 		project.addCompileSourceRoot(generatedSourcesDirectory.getAbsolutePath());
 	}
 
-	private static String CLASS_CONTENT = ON_CR.join(Arrays.asList(
-			"package potes.java8.currying;",
+	private static String FUNCTION_CONTENT = ON_CR.join(Arrays.asList(
+			"package java8.currying;",
 			"import java.util.function.Function;",
 			"@FunctionalInterface",
 			"public interface Function%d<%s,T> {",
-			"  T apply(%s);",
+			"  public T apply(%s);",
 			"%s",
 			"}"
 			));
-	private static String METHOD_CONTENT = ON_CR.join(Arrays.asList(
-			"  default Function%s apply(%s) {",
-			"    return (%s) -> this.apply(%s);",
+	private static String FUNCTION_METHOD = ON_CR.join(Arrays.asList(
+			"  public default Function%s curry(%s) {",
+			"    return (%s) -> apply(%s);",
+			"  }"
+			));
+
+	private static String CONSUMER_CONTENT = ON_CR.join(Arrays.asList(
+			"package java8.currying;",
+			"import java.util.function.Consumer;",
+			"@FunctionalInterface",
+			"public interface Consumer%d<%s> {",
+			"  public void accept(%s);",
+			"%s",
+			"}"
+			));
+	private static String CONSUMER_METHOD = ON_CR.join(Arrays.asList(
+			"  public default Consumer%s curry(%s) {",
+			"    return (%s) -> accept(%s);",
 			"  }"
 			));
 
@@ -75,24 +90,35 @@ public class GenerateCodeMojo extends AbstractMojo {
 		Map<String,String> classes = new TreeMap<>();
 		for (int i = 2; i <= maxFunctionArgs; i++) {
 			List<String> typeParamNames = TYPE_PARAM_NAMES.subList(0, i);
-			List<String> methods = new ArrayList<>();
+			List<String> functionMethods = new ArrayList<>();
+			List<String> consumerMethods = new ArrayList<>();
 			for (int j = 1; j < i; j++) {
-				Object[] curried = METHOD_PARAM_MAPPER.apply(typeParamNames.subList(0, j));
-				List<String> remainder = typeParamNames.subList(j, typeParamNames.size());
-				String functionClassTypes = remainder.size() == 1 ?
-						"<" + remainder.get(0) + ",T>" :
-						remainder.size() + "<" + ON_COMMA.join(remainder) + ",T>";
-				methods.add(String.format(METHOD_CONTENT,
-						functionClassTypes, 
-						ON_COMMA.join(curried), 
-						ON_COMMA.join(remainder).toLowerCase(), 
-						ON_COMMA.join(typeParamNames).toLowerCase()));
+				Object[] formatArgs = methodFormatArgs(typeParamNames, j);
+				consumerMethods.add(String.format(CONSUMER_METHOD, formatArgs));
+				formatArgs[0] = ((String)formatArgs[0]).replace(">", ",T>");
+				functionMethods.add(String.format(FUNCTION_METHOD, formatArgs));
 			}
 			Object[] methodParams = METHOD_PARAM_MAPPER.apply(typeParamNames);
-			classes.put("Function"+i, String.format(CLASS_CONTENT, 
-					i, ON_COMMA.join(typeParamNames), ON_COMMA.join(methodParams), ON_CR.join(methods)));
+			Object[] formatArgs = { i, ON_COMMA.join(typeParamNames), ON_COMMA.join(methodParams), ON_CR.join(functionMethods) };
+			classes.put("Function"+i, String.format(FUNCTION_CONTENT, formatArgs));
+			formatArgs[3] = ON_CR.join(consumerMethods);
+			classes.put("Consumer"+i, String.format(CONSUMER_CONTENT, formatArgs));
 		}
 		return classes;
+	}
+
+	private Object[] methodFormatArgs(List<String> typeParamNames, int j) {
+		Object[] curried = METHOD_PARAM_MAPPER.apply(typeParamNames.subList(0, j));
+		List<String> remainder = typeParamNames.subList(j, typeParamNames.size());
+		String functionClassTypes = remainder.size() == 1 ?
+				"<" + remainder.get(0) + ">" :
+				remainder.size() + "<" + ON_COMMA.join(remainder) + ">";
+		return new Object[] {
+			functionClassTypes, 
+			ON_COMMA.join(curried), 
+			ON_COMMA.join(remainder).toLowerCase(), 
+			ON_COMMA.join(typeParamNames).toLowerCase()
+		};
 	}
 	
 

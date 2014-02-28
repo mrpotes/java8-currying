@@ -1,9 +1,9 @@
-package potes.java8.currying;
+package java8.currying;
 import java.util.function.Function;
 @FunctionalInterface
 public interface Function2<A,B,T> {
-  T apply(A a,B b);
-  default Function<B,T> apply(A a) {
-    return (b) -> this.apply(a,b);
+  public T apply(A a,B b);
+  public default Function<B,T> curry(A a) {
+    return (b) -> apply(a,b);
   }
 }
