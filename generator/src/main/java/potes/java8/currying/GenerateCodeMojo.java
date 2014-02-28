@@ -10,11 +10,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -22,18 +22,18 @@ import org.apache.maven.project.MavenProject;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 
-@Mojo(name="generate")
+@Mojo(name="generate", defaultPhase=LifecyclePhase.GENERATE_SOURCES)
 public class GenerateCodeMojo extends AbstractMojo {
 	
 	private static final Joiner ON_CR = Joiner.on("\n");
-	private static List<String> TYPE_PARAM_NAMES = Arrays.asList("A","B","C","D","E","F","G","H","I");
+	private static List<String> TYPE_PARAM_NAMES = Arrays.asList("A","B","C","D","E","F","G","H","I","J");
 	private static Joiner ON_COMMA = Joiner.on(",");
-	private static Function<List<String>,String[]> METHOD_PARAM_MAPPER = l -> {
-		return (String[])l.stream().map(s -> s + " " + s.toLowerCase()).toArray();
+	private static Function<List<String>,Object[]> METHOD_PARAM_MAPPER = l -> {
+		return l.stream().map(s -> s + " " + s.toLowerCase()).toArray();
 	};
 	
 	@Parameter(property = "outputDirectory", defaultValue="target/generated-sources/currying")
-	private Resource generatedSourcesDirectory;
+	private File generatedSourcesDirectory;
 
     /**
      * The maven project
@@ -42,10 +42,10 @@ public class GenerateCodeMojo extends AbstractMojo {
     private MavenProject project;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-		File d = new File(new File(new File(generatedSourcesDirectory.getDirectory(), "potes"), "java8"), "currying");
+		File d = new File(new File(new File(generatedSourcesDirectory, "potes"), "java8"), "currying");
 		d.mkdirs();
 		
-		Map<String,String> classContent = makeClasses(9);
+		Map<String,String> classContent = makeClasses(10);
 		for (String classname : classContent.keySet()) {
 			try {
 				Files.write(classContent.get(classname), new File(d, classname + ".java"), Charset.forName("UTF-8"));
@@ -53,7 +53,7 @@ public class GenerateCodeMojo extends AbstractMojo {
 				throw new MojoFailureException("Could not create class: "+ classname, e);
 			}
 		}
-		project.addResource(generatedSourcesDirectory);
+		project.addCompileSourceRoot(generatedSourcesDirectory.getAbsolutePath());
 	}
 
 	private static String CLASS_CONTENT = ON_CR.join(Arrays.asList(
@@ -71,13 +71,13 @@ public class GenerateCodeMojo extends AbstractMojo {
 			"  }"
 			));
 
-	Map<String, String> makeClasses(int numClasses) {
+	Map<String, String> makeClasses(int maxFunctionArgs) {
 		Map<String,String> classes = new TreeMap<>();
-		for (int i = 1; i < numClasses; i++) {
+		for (int i = 2; i <= maxFunctionArgs; i++) {
 			List<String> typeParamNames = TYPE_PARAM_NAMES.subList(0, i);
 			List<String> methods = new ArrayList<>();
-			for (int j = 1; j < i - 1; j++) {
-				String[] curried = METHOD_PARAM_MAPPER.apply(typeParamNames.subList(0, j));
+			for (int j = 1; j < i; j++) {
+				Object[] curried = METHOD_PARAM_MAPPER.apply(typeParamNames.subList(0, j));
 				List<String> remainder = typeParamNames.subList(j, typeParamNames.size());
 				String functionClassTypes = remainder.size() == 1 ?
 						"<" + remainder.get(0) + ",T>" :
@@ -88,7 +88,7 @@ public class GenerateCodeMojo extends AbstractMojo {
 						ON_COMMA.join(remainder).toLowerCase(), 
 						ON_COMMA.join(typeParamNames).toLowerCase()));
 			}
-			String[] methodParams = METHOD_PARAM_MAPPER.apply(typeParamNames);
+			Object[] methodParams = METHOD_PARAM_MAPPER.apply(typeParamNames);
 			classes.put("Function"+i, String.format(CLASS_CONTENT, 
 					i, ON_COMMA.join(typeParamNames), ON_COMMA.join(methodParams), ON_CR.join(methods)));
 		}

@@ -16,13 +16,13 @@ public class GenerateCodeMojoTest {
 
 	@Test
 	public void testFunction2() throws IOException {
-		String cls = mojo.makeClasses(1).get("Function2");
+		String cls = mojo.makeClasses(2).get("Function2");
 		assertEquals(getString("/expectedFunction2.txt"), cls);
 	}
 	
 	@Test
 	public void testFunction10() throws IOException {
-		String cls = mojo.makeClasses(9).get("Function10");
+		String cls = mojo.makeClasses(10).get("Function10");
 		assertEquals(getString("/expectedFunction10.txt"), cls);
 	}
 	
