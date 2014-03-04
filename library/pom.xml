@@ -1,37 +1,29 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>java8-currying</artifactId>
-	<groupId>potes.java8.currying</groupId>
+	<artifactId>curryables</artifactId>
+	<groupId>uk.org.potes.java8</groupId>
 	<version>0.0.1-SNAPSHOT</version>
-  <scm>
-    <connection>scm:git:git@github.com:mrpotes/java8-currying.git</connection>
-    <developerConnection>scm:git:git@github.com:mrpotes/java8-currying.git</developerConnection>
-    <url>git@github.com:mrpotes/java8-currying.git</url>
-  </scm>
+	<scm>
+		<connection>scm:git:git@github.com:mrpotes/java8-currying.git</connection>
+		<developerConnection>scm:git:git@github.com:mrpotes/java8-currying.git</developerConnection>
+		<url>git@github.com:mrpotes/java8-currying.git</url>
+	</scm>
 	<dependencies>
-    <dependency>
-      <artifactId>junit</artifactId>
-      <groupId>junit</groupId>
-      <version>4.10</version>
-      <scope>test</scope>
-    </dependency>
+		<dependency>
+			<artifactId>curryable-annotation</artifactId>
+			<groupId>uk.org.potes.java8</groupId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<artifactId>junit</artifactId>
+			<groupId>junit</groupId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
-			<plugin>
-				<artifactId>java8-currying-generator</artifactId>
-				<groupId>potes.java8.currying</groupId>
-				<version>${project.version}</version>
-				<executions>
-					<execution>
-						<id>generate</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -39,7 +31,28 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
+					<annotationProcessors>
+						<annotationProcessor>potes.java8.currying.CurryingAnnotationProcessor</annotationProcessor>
+					</annotationProcessors>
+					<debug>true</debug>
+					<optimize>true</optimize>
+					<compilerArguments>
+						<AaddGeneratedAnnotation>true</AaddGeneratedAnnotation>
+						<Adebug>true</Adebug>
+					</compilerArguments>
 				</configuration>
+        <dependencies>
+          <dependency>
+            <artifactId>java8-currying-generator</artifactId>
+            <groupId>uk.org.potes.java8</groupId>
+            <version>0.0.1-SNAPSHOT</version>
+          </dependency>
+			    <dependency>
+			      <groupId>com.sun</groupId>
+			      <artifactId>tools</artifactId>
+			      <version>1.8</version>
+			    </dependency>
+        </dependencies>
 			</plugin>
 		</plugins>
 	</build>
