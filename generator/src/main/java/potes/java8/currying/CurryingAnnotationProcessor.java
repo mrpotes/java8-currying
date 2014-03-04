@@ -108,6 +108,7 @@ public class CurryingAnnotationProcessor extends AbstractProcessor {
 				JavaFileObject f = processingEnv.getFiler().createSourceFile(classname);
 				OutputStream os = f.openOutputStream();
 				IOUtils.write(classContent.get(classname).getBytes(Charset.forName("UTF-8")), os);
+				os.close();
 			}
 		} else {
 			processingEnv.getMessager().printMessage(Kind.ERROR, "Could not find the lambda function on this functional interface");
