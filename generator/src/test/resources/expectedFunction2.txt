@@ -1,8 +1,11 @@
 package java8.currying;
 import java.util.function.Function;
 @FunctionalInterface
+/** A lambda function for 2 arguments */
 public interface Function2<A,B,T> {
+  /** See java.util.function.Function.apply(T) */
   public T apply(A a,B b);
+  /** Curry with 1 arguments */
   public default Function<B,T> curry(A a) {
     return (b) -> apply(a,b);
   }

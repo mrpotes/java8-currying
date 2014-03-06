@@ -1,32 +1,43 @@
 package java8.currying;
 import java.util.function.Function;
 @FunctionalInterface
+/** A lambda function for 10 arguments */
 public interface Function10<A,B,C,D,E,F,G,H,I,J,T> {
+  /** See java.util.function.Function.apply(T) */
   public T apply(A a,B b,C c,D d,E e,F f,G g,H h,I i,J j);
+  /** Curry with 1 arguments */
   public default Function9<B,C,D,E,F,G,H,I,J,T> curry(A a) {
     return (b,c,d,e,f,g,h,i,j) -> apply(a,b,c,d,e,f,g,h,i,j);
   }
+  /** Curry with 2 arguments */
   public default Function8<C,D,E,F,G,H,I,J,T> curry(A a,B b) {
     return (c,d,e,f,g,h,i,j) -> apply(a,b,c,d,e,f,g,h,i,j);
   }
+  /** Curry with 3 arguments */
   public default Function7<D,E,F,G,H,I,J,T> curry(A a,B b,C c) {
     return (d,e,f,g,h,i,j) -> apply(a,b,c,d,e,f,g,h,i,j);
   }
+  /** Curry with 4 arguments */
   public default Function6<E,F,G,H,I,J,T> curry(A a,B b,C c,D d) {
     return (e,f,g,h,i,j) -> apply(a,b,c,d,e,f,g,h,i,j);
   }
+  /** Curry with 5 arguments */
   public default Function5<F,G,H,I,J,T> curry(A a,B b,C c,D d,E e) {
     return (f,g,h,i,j) -> apply(a,b,c,d,e,f,g,h,i,j);
   }
+  /** Curry with 6 arguments */
   public default Function4<G,H,I,J,T> curry(A a,B b,C c,D d,E e,F f) {
     return (g,h,i,j) -> apply(a,b,c,d,e,f,g,h,i,j);
   }
+  /** Curry with 7 arguments */
   public default Function3<H,I,J,T> curry(A a,B b,C c,D d,E e,F f,G g) {
     return (h,i,j) -> apply(a,b,c,d,e,f,g,h,i,j);
   }
+  /** Curry with 8 arguments */
   public default Function2<I,J,T> curry(A a,B b,C c,D d,E e,F f,G g,H h) {
     return (i,j) -> apply(a,b,c,d,e,f,g,h,i,j);
   }
+  /** Curry with 9 arguments */
   public default Function<J,T> curry(A a,B b,C c,D d,E e,F f,G g,H h,I i) {
     return (j) -> apply(a,b,c,d,e,f,g,h,i,j);
   }

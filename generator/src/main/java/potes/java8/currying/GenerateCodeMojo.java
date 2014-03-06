@@ -60,12 +60,15 @@ public class GenerateCodeMojo extends AbstractMojo {
 			"package java8.currying;",
 			"import java.util.function.Function;",
 			"@FunctionalInterface",
+			"/** A lambda function for %d arguments */",
 			"public interface Function%d<%s,T> {",
+			"  /** See java.util.function.Function.apply(T) */",
 			"  public T apply(%s);",
 			"%s",
 			"}"
 			));
 	private static String FUNCTION_METHOD = ON_CR.join(Arrays.asList(
+			"  /** Curry with %d arguments */",
 			"  public default Function%s curry(%s) {",
 			"    return (%s) -> apply(%s);",
 			"  }"
@@ -75,12 +78,15 @@ public class GenerateCodeMojo extends AbstractMojo {
 			"package java8.currying;",
 			"import java.util.function.Consumer;",
 			"@FunctionalInterface",
+			"/** A lambda consumer for %d arguments */",
 			"public interface Consumer%d<%s> {",
+			"  /** See java.util.function.Consumer.accept(T) */",
 			"  public void accept(%s);",
 			"%s",
 			"}"
 			));
 	private static String CONSUMER_METHOD = ON_CR.join(Arrays.asList(
+			"  /** Curry with %d arguments */",
 			"  public default Consumer%s curry(%s) {",
 			"    return (%s) -> accept(%s);",
 			"  }"
@@ -95,13 +101,13 @@ public class GenerateCodeMojo extends AbstractMojo {
 			for (int j = 1; j < i; j++) {
 				Object[] formatArgs = methodFormatArgs(typeParamNames, j);
 				consumerMethods.add(String.format(CONSUMER_METHOD, formatArgs));
-				formatArgs[0] = ((String)formatArgs[0]).replace(">", ",T>");
+				formatArgs[1] = ((String)formatArgs[1]).replace(">", ",T>");
 				functionMethods.add(String.format(FUNCTION_METHOD, formatArgs));
 			}
 			Object[] methodParams = METHOD_PARAM_MAPPER.apply(typeParamNames);
-			Object[] formatArgs = { i, ON_COMMA.join(typeParamNames), ON_COMMA.join(methodParams), ON_CR.join(functionMethods) };
+			Object[] formatArgs = { i, i, ON_COMMA.join(typeParamNames), ON_COMMA.join(methodParams), ON_CR.join(functionMethods) };
 			classes.put("Function"+i, String.format(FUNCTION_CONTENT, formatArgs));
-			formatArgs[3] = ON_CR.join(consumerMethods);
+			formatArgs[4] = ON_CR.join(consumerMethods);
 			classes.put("Consumer"+i, String.format(CONSUMER_CONTENT, formatArgs));
 		}
 		return classes;
@@ -114,6 +120,7 @@ public class GenerateCodeMojo extends AbstractMojo {
 				"<" + remainder.get(0) + ">" :
 				remainder.size() + "<" + ON_COMMA.join(remainder) + ">";
 		return new Object[] {
+			j,
 			functionClassTypes, 
 			ON_COMMA.join(curried), 
 			ON_COMMA.join(remainder).toLowerCase(), 
