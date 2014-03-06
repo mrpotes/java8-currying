@@ -1,15 +1,16 @@
 package potes.java8.currying;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
+
 import java8.currying.Curryable;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -23,11 +24,17 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 
-import org.apache.commons.io.IOUtils;
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 
 @SupportedAnnotationTypes("java8.currying.Curryable")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -45,6 +52,7 @@ public class CurryingAnnotationProcessor extends AbstractProcessor {
 	};
 	private Processor processor;
 	private Elements elementUtils;
+	private Template tpl;
 	
     @SuppressWarnings("unchecked")
 	public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -61,9 +69,14 @@ public class CurryingAnnotationProcessor extends AbstractProcessor {
 	        	return;
 	        }
 			Class<? extends Processor> processorClass = (Class<? extends Processor>) Class.forName(className);
-			this.processor = (Processor) processorClass.getConstructor().newInstance(processingEnv);
+			this.processor = (Processor) processorClass.getConstructor().newInstance();
 			processorClass.getMethod("init", ProcessingEnvironment.class).invoke(this.processor, processingEnv);
 			this.elementUtils = processingEnv.getElementUtils();
+			
+			Configuration cfg = new Configuration();
+			cfg.setDefaultEncoding("UTF-8");
+			cfg.setTemplateLoader(new ClassTemplateLoader(this.getClass(), "/templates"));
+			this.tpl = cfg.getTemplate("class.ftl");
         } catch (Exception e) {
         	processingEnv.getMessager().printMessage(Kind.ERROR, "Could not create processor: " + e.getMessage());
         }
@@ -105,63 +118,42 @@ public class CurryingAnnotationProcessor extends AbstractProcessor {
 		if (lambdaFunction != null) {
 			Map<String,String> classContent = makeClasses(prefix, pkg, lambdaFunction);
 			for (String classname : classContent.keySet()) {
+				processingEnv.getMessager().printMessage(Kind.NOTE, "Creating class: "+classname);
 				JavaFileObject f = processingEnv.getFiler().createSourceFile(classname);
-				OutputStream os = f.openOutputStream();
-				IOUtils.write(classContent.get(classname).getBytes(Charset.forName("UTF-8")), os);
-				os.close();
+				try (Writer out = f.openWriter()) {
+					tpl.process(classContent.get(classname), out);
+				} catch (TemplateException e1) {
+					processingEnv.getMessager().printMessage(Kind.ERROR, "Could not produce class: " + e1.getLocalizedMessage());
+				} 
 			}
 		} else {
 			processingEnv.getMessager().printMessage(Kind.ERROR, "Could not find the lambda function on this functional interface");
 		}
 	}
 	
-	private static String FUNCTION_CONTENT = ON_CR.apply(Arrays.asList(
-			"package java8.currying;",
-			"import java.util.function.Function;",
-			"@FunctionalInterface",
-			"public interface Function%d<%s,T> {",
-			"  public T apply(%s);",
-			"%s",
-			"}"
-			));
-	private static String FUNCTION_METHOD = ON_CR.apply(Arrays.asList(
-			"  public default Function%s curry(%s) {",
-			"    return (%s) -> apply(%s);",
-			"  }"
-			));
-
-	private static String CONSUMER_CONTENT = ON_CR.apply(Arrays.asList(
-			"package java8.currying;",
-			"import java.util.function.Consumer;",
-			"@FunctionalInterface",
-			"public interface Consumer%d<%s> {",
-			"  public void accept(%s);",
-			"%s",
-			"}"
-			));
-	private static String CONSUMER_METHOD = ON_CR.apply(Arrays.asList(
-			"  public default Consumer%s curry(%s) {",
-			"    return (%s) -> accept(%s);",
-			"  }"
-			));
-
 	Map<String, String> makeClasses(String baseName, String pkg, ExecutableElement lambdaFunction) {
 		Map<String,String> classes = new TreeMap<>();
-		for (int i = 1; i < lambdaFunction.getParameters().size() - 1; i++) {
-			List<String> typeParamNames = TYPE_PARAM_NAMES.subList(0, i);
-			List<String> functionMethods = new ArrayList<>();
-			List<String> consumerMethods = new ArrayList<>();
-			for (int j = 1; j < i; j++) {
-				Object[] formatArgs = methodFormatArgs(typeParamNames, j);
-				consumerMethods.add(String.format(CONSUMER_METHOD, formatArgs));
-				formatArgs[0] = ((String)formatArgs[0]).replace(">", ",T>");
-				functionMethods.add(String.format(FUNCTION_METHOD, formatArgs));
+		String lambdaName = lambdaFunction.getSimpleName().toString();
+		String lambdaReturnType;
+		TypeMirror returnType = lambdaFunction.getReturnType();
+		if (returnType.getKind().equals(TypeKind.VOID)) {
+			lambdaReturnType = "void";
+		} else {
+			lambdaReturnType = returnType.toString();
+		}
+		for (int i = 0; i < lambdaFunction.getParameters().size() - 1; i++) {
+			Map<String,Object> model = new HashMap<>();
+			model.put("className", baseName + i);
+			model.put("package", pkg);
+			model.put("methodName", lambdaName);
+			model.put("methodReturnType", lambdaReturnType);
+			model.put("generics", TYPE_PARAM_NAMES.subList(0, i)); //TODO - deduce from function and type
+			List<String> methods = new ArrayList<>();
+			for (int j = 0; j < i; j++) {
+				VariableElement param = lambdaFunction.getParameters().get(0);
+				
 			}
-			List<String> methodParams = METHOD_PARAM_MAPPER.apply(typeParamNames);
-			Object[] formatArgs = { i, ON_COMMA.apply(typeParamNames), ON_COMMA.apply(methodParams), ON_CR.apply(functionMethods) };
-			classes.put("Function"+i, String.format(FUNCTION_CONTENT, formatArgs));
-			formatArgs[3] = ON_CR.apply(consumerMethods);
-			classes.put("Consumer"+i, String.format(CONSUMER_CONTENT, formatArgs));
+			model.put("methods", methods);
 		}
 		return classes;
 	}

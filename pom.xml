@@ -6,8 +6,9 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
-    <module>annotation</module>
-    <module>generator</module>
+		<module>annotation</module>
+		<module>generator</module>
 		<module>library</module>
+		<module>eclipse-plugin</module>
 	</modules>
 </project>

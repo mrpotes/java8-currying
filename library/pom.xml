@@ -21,6 +21,12 @@
 			<version>4.10</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<artifactId>java8-currying-generator</artifactId>
+			<groupId>uk.org.potes.java8</groupId>
+			<version>0.0.1-SNAPSHOT</version>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -36,23 +42,9 @@
 					</annotationProcessors>
 					<debug>true</debug>
 					<optimize>true</optimize>
-					<compilerArguments>
-						<AaddGeneratedAnnotation>true</AaddGeneratedAnnotation>
-						<Adebug>true</Adebug>
-					</compilerArguments>
+					<verbose>true</verbose>
+					<showWarnings>true</showWarnings>
 				</configuration>
-        <dependencies>
-          <dependency>
-            <artifactId>java8-currying-generator</artifactId>
-            <groupId>uk.org.potes.java8</groupId>
-            <version>0.0.1-SNAPSHOT</version>
-          </dependency>
-			    <dependency>
-			      <groupId>com.sun</groupId>
-			      <artifactId>tools</artifactId>
-			      <version>1.8</version>
-			    </dependency>
-        </dependencies>
 			</plugin>
 		</plugins>
 	</build>
